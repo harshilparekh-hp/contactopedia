@@ -1,13 +1,19 @@
 import React from "react";
+import Contact from "./Contact";
 
-const FavouriteContacts = () => {
+const FavouriteContacts = (props) => {
     return(
-        <div>
-            <button className="btn btn-secondary form-control">
-                Favourite Contacts
-            </button>
+        <div className="col-12 py-2" style={{ borderRadius: "10px", backgroundColor:"#f7f3cd"}}>
+            <div className="text-center text-black-25">Favourites</div>
+            <div className="p-2">
+            {
+                props.contacts.map((contact, index) => (
+                    <Contact contactObj={contact} key={index}></Contact>
+                ))    
+            }
+            </div>
         </div>
-    )
+    );
 }
 
 export default FavouriteContacts;
