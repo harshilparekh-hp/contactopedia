@@ -33,23 +33,25 @@ class MainBody extends React.Component {
           isFavourite: true,
         },
       ],
+      selectedContact: undefined,
+      isUpdating: false,
     };
   }
 
   handleAddContact = (newContact) => {
-    if (newContact.name == "") {
+    if (newContact.name === "") {
       return { status: "failure", msg: "Please Enter a valid name" };
-    } else if (newContact.email == "") {
+    } else if (newContact.email === "") {
       return { status: "failure", msg: "Please Enter a valid email" };
     }
 
     const duplicateReacord = this.state.contactList.filter((f) => {
-      if (f.email == newContact.email || f.phone == newContact.phone) {
+      if (f.email === newContact.email || f.phone === newContact.phone) {
         return true;
       }
     });
 
-    if (duplicateReacord.length > 0 ) {
+    if (duplicateReacord.length > 0) {
       return { status: "failure", msg: "Duplicate record!" };
     } else {
       const finalAddedContact = {
@@ -75,6 +77,113 @@ class MainBody extends React.Component {
     }
   };
 
+  handleToggleFavourite = (contact) => {
+    this.setState((prevState) => {
+      return {
+        contactList: prevState.contactList.map((m) => {
+          if (m.id === contact.id) {
+            return { ...m, isFavourite: !m.isFavourite };
+          }
+          return m;
+        }),
+      };
+    });
+  };
+
+  handleDeleteContact = (contact) => {
+    this.setState((prevState) => {
+      return {
+        contactList: prevState.contactList.filter(
+          (obj) => obj.id != contact.id
+        ),
+      };
+    });
+  };
+
+  handleAddRandomContact = (newContact) => {
+    const finalAddedContact = {
+      ...newContact,
+      id:
+        this.state.contactList.length > 0
+          ? this.state.contactList[this.state.contactList.length - 1].id + 1
+          : 1,
+      isFavourite: false,
+    };
+
+    this.setState((prevState) => {
+      return {
+        contactList: prevState.contactList.concat([finalAddedContact]),
+      };
+    });
+  };
+
+  handleRemoveAllContacts = () => {
+    this.setState((prevState) => {
+      return {
+        contactList: (prevState.contactList = []),
+      };
+    });
+  };
+
+  handleEditContact = (contact) => {
+    console.log(contact);
+    this.setState((prevState) => {
+      return {
+        selectedContact: contact,
+        isUpdating: true,
+      };
+    });
+  };
+
+  handleCancelUpdate = () => {
+    this.setState((prevState) => {
+      return {
+        selectedContact: undefined,
+        isUpdating: false,
+      };
+    });
+  };
+
+  handleUpdateContact = (updatingContact) => {
+    if (updatingContact.name === "") {
+      return { status: "failure", msg: "Please Enter a valid name" };
+    } else if (updatingContact.email === "") {
+      return { status: "failure", msg: "Please Enter a valid email" };
+    }
+    const duplicateReacord = this.state.contactList.filter((f) => {
+      if (
+        f.email === updatingContact.email ||
+        f.phone === updatingContact.phone
+      ) {
+        return true;
+      }
+    });
+
+    if (duplicateReacord.length > 0 && !this.state.isUpdating) {
+      return { status: "failure", msg: "Duplicate record!" };
+    } else {
+      this.setState((prevState) => {
+        return {
+          contactList: prevState.contactList.map((obj) => {
+            if (obj.id == prevState.selectedContact.id) {
+          
+              return {
+                ...obj,
+                name: updatingContact.name,
+                email: updatingContact.email,
+                phone: updatingContact.phone,
+              };
+            }
+            return obj;
+          }),
+          isUpdating:false,
+          selectedContact:undefined
+        };
+      });
+      return { status: "success", msg: "Contact is updated Successfully!" };
+    }
+  };
+
   render() {
     return (
       // <div className='row'>
@@ -86,17 +195,27 @@ class MainBody extends React.Component {
         <Header></Header>
         <div className="container" style={{ minHeight: "85vh" }}>
           <div className="row py-3">
-            <div className="col-4 offset-2">
-              <AddRandomContact />
+            <div className="col-4 offset-2 row">
+              <AddRandomContact
+                handleAddRandomContact={this.handleAddRandomContact}
+              />
             </div>
 
-            <div className="col-4">
-              <RemoveAllContacts />
+            <div className="col-4 row">
+              <RemoveAllContacts
+                handleRemoveAllContacts={this.handleRemoveAllContacts}
+              />
             </div>
 
             <div className="row py-2">
               <div className="col-8 offset-2 row">
-                <AddContact handleAddContact={this.handleAddContact} />
+                <AddContact
+                  addContact={this.handleAddContact}
+                  isUpdating={this.state.isUpdating}
+                  selectedContact={this.state.selectedContact}
+                  cancelUpdate={this.handleCancelUpdate}
+                  updateContact = {this.handleUpdateContact}
+                />
               </div>
             </div>
 
@@ -106,6 +225,9 @@ class MainBody extends React.Component {
                   contacts={this.state.contactList.filter(
                     (u) => u.isFavourite === true
                   )}
+                  toggleFavourite={this.handleToggleFavourite}
+                  deleteContact={this.handleDeleteContact}
+                  editContact={this.handleEditContact}
                 />
               </div>
             </div>
@@ -116,6 +238,9 @@ class MainBody extends React.Component {
                   contacts={this.state.contactList.filter(
                     (u) => u.isFavourite === false
                   )}
+                  toggleFavourite={this.handleToggleFavourite}
+                  deleteContact={this.handleDeleteContact}
+                  editContact={this.handleEditContact}
                 />
               </div>
             </div>
